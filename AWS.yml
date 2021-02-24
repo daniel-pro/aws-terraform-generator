@@ -1,0 +1,10 @@
+---
+
+region: 'us-west-2'
+access_key: 'xxxxxxxxxxxxxxxxxxxxxxx'
+secret_key: 'zzzzzzzzzzzzzzzzzzzzzzz'
+
+aws_vpcs:
+   - name: 'MYVPC01'
+     cidr_block: '10.0.0.0/16'
+     instance_tenancy: 'default' # it can be default (shared), dedicated or host

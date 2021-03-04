@@ -12,3 +12,5 @@ resource "aws_internet_gateway" "{{ item.name }}" {
 {% endif %}
 
 }
+{% endfor %}
+{% endif %}

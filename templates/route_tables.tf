@@ -8,7 +8,7 @@ resource "aws_route_table" "{{ item.name }}" {
     cidr_block = "{{ route.cidr_block }}"
     {{ route.target_type_id_definition }} = {{ route.target_resource_type }}.{{ route.target_name }}.id
   }
-{% endif %}
+{% endfor %}
 
 {% if item.tags is defined %}
   tags = {
@@ -19,3 +19,5 @@ resource "aws_route_table" "{{ item.name }}" {
 {% endif %}
 
 }
+{% endfor %}
+{% endif %}

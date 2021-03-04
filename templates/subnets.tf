@@ -37,3 +37,5 @@ resource "aws_subnet" "{{ item.name }}" {
 {% endif %}
 
 }
+{% endfor %}
+{% endif %}

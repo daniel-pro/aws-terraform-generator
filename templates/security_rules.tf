@@ -25,10 +25,33 @@ resource "aws_security_rule" "{{ item.name }}" {
               {{ cidr_block }},
 {% endfor %}
                       ]
-    }
 {% endif %}
+    }
 {% endfor %}
 {% endif %}
+
+
+{% if item.egress_rules is defined %}
+{% for egress_rule in item.egress_rules %}
+   egress {
+{% if egress_rule.description is defined %}
+     description = "{{ egress_rule.description }}"
+{% endif %}
+     from_port   = {{ egress_rule.from_port }}
+     to_port     = {{ egress_rule.to_port }}
+     protocol    = "{{ egress_rule.protocol }}"
+ 
+{% if egress_rule.cidr_blocks is defined %}
+     cidr_blocks = [
+{% for cidr_block in egress_rule.cidr_blocks %}
+              {{ cidr_block }},
+{% endfor %}
+                      ]
+{% endif %}
+    }
+{% endfor %}
+{% endif %}
+
     
 {% if item.tags is defined %}
    tags = {

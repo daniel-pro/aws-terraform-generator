@@ -1,0 +1,188 @@
+---
+
+region: 'us-west-2'
+access_key: 'xxxxxxxxxxxxxxxxxxxxxxx'
+secret_key: 'zzzzzzzzzzzzzzzzzzzzzzz'
+
+backend:
+  - type: 's3'
+    options:
+      - key: 'bucket'
+        value: 'terraform-state-app-code'
+      - key: 'key'
+        value: 'app-code.environment.tfstate'
+      - key: 'region'
+        value: 'us-west-2' 
+
+aws_key_pairs:
+  - key_name: "my_access_key"
+    public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDT8COwiguLLGXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+aws_vpcs:
+  - name: 'MYVPC01'
+    cidr_block: '10.0.0.0/16'
+    instance_tenancy: 'default' # it can be default (shared), dedicated or host
+
+aws_iam_roles:
+  - name: 'myrole01'
+    json_assume_role_policy: '
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+              "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+          }
+        ]
+      }'
+
+iam_role_policies:
+  - name: 'MyS3ObjectAccessPolicy'
+    role: 'myrole01'
+    json_policy: ' 
+{ 
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": ["arn:aws:s3:::wise-poc-rstudio"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": ["arn:aws:s3:::wise-poc-rstudio/*"]
+    }
+  ]
+}'
+
+iam_instance_profiles:
+  - name: 'myinstanceprofile'
+    roles:
+      - myrole01
+
+aws_instances:
+  - name: 'vm01'
+    ami: 'ami-079d9017cb651564d'
+    instance_type: 't3.small'
+    key_name: 'my_access_key'
+    monitoring: 'true'
+    iam_instance_profile: "myprofile"
+    root_block_device:
+      - encrypted: 'true'
+        volume_size: 10
+        volume_type: 'gp3'
+    network_interfaces:
+      - name: 'vnic0'
+        subnet: 'mysubnet-us-west-1'
+        private_ips:
+          - 10.0.0.20
+          - 10.0.0.21
+        vpc_security_group_ids:
+          - 'sg-12345678'
+          - 'sg-87654321'
+      - name: 'vnic1'
+        subnet: 'mysubnet-us-west-1'
+        private_ips:
+          - 10.0.0.22
+          - 10.0.0.23         
+        vpc_security_group_ids:
+          - 'sg-12345678'
+          - 'sg-87654321'
+    tags:
+      - name: "Name"
+        value: "vm01"
+
+aws_s3_buckets:
+  - name: 'myuniquebucketname'
+    acl: 'private'
+    versioning: 'true'
+    server_side_encryption_configuration: 
+      - sse_algorithm: aws:kms
+    block_public_acls: 'true'
+    block_public_policy: 'true'
+
+aws_db_subnet_groups:
+  - name: 'pg_db_subnet_group'
+    description: 'PostgreSQL DB Subnet Group'
+    subnets:
+      - subnet01
+      - subnet02
+
+aws_db_instances:
+  - name: 'db01'
+    identifier: 'db01'
+    username: 'postgres'
+    password: 'YourPasswordHere'
+    engine: 'postgres'
+    instance_class: 'db.m3.medium'
+    allocated_storage: 20
+    max_allocated_storage: 1024
+    storage_encrypted: 'true'
+    vpc_security_group_ids:
+      - 'sg-12345678'
+      - 'sg-87654321'
+    db_subnet_group_name: 'pg_db_subnet_group'
+    availability_zone: 'us-west-2'
+    storage_type: 'gp2'
+    publicly_accessible: 'false'
+
+aws_ecr_repositories:
+  - name: "myrepo01"    
+    image_tag_mutability: 'MUTABLE'
+    scan_on_push: 'false'
+
+aws_efs_file_systems:
+  - name: 'myefs01'
+    creation_token: 'myefs01-unique-id'
+    encrypted: 'true'
+    throughput_mode: 'bursting'
+    performance_mode: 'generalPurpose'    
+
+aws_efs_mount_targets:
+  - name: 'fsmt01'
+    file_system: 'fs-xxxzxzz'
+    subnet: 'subnet-xxxxxxxx'
+    security_groups: 'sg-xxxxxxxx'
+
+aws_efs_access_point:
+  - name: 'fsap-cccccccc'
+    root_directory: 
+      - path: '/'
+    file_system: 'myefs01'
+
+# Ref: https://docs.aws.amazon.com/parallelcluster/latest/ug/fsx-section.html#fsx-drive-cache-type
+aws_fsx_lustre_file_systems:
+  - name: 'fsx-lustre01'
+    import_path: 's3://fsxlustrebucket01/fsxlustre01'
+    storage_capacity: 1200
+    subnets: 
+      - subnet01
+      - subnet02
+    export_path: 'this is just a flag, put whatever you want here, the import_path will be used anyway'
+    imported_file_chunk_size: 512
+    security_groups:
+      - 'sg-12345678'
+      - 'sg-87654321'
+    weekly_maintenance_start_time: '6:22:00'
+    deployment_type: 'PERSISTENT_1'
+    storage_type: 'HDD'
+    per_unit_storage_throughput: '12' # storage_type = SSD The possible values are 50, 100, 200. Storage_type = HDD The possible values are 12, 40.
+    drive_cache_type: 'READ' # This can only be set if the storage_type setting is set to HDD.
+    auto_import_policy: 'NEW_CHANGED'
+    tags:
+      - name: "environment"
+        value: "prod"
+      - name: "costcenter"
+        value: "engineering"
+         
+
+

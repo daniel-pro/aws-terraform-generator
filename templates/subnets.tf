@@ -12,10 +12,6 @@ resource "aws_subnet" "{{ item.name }}" {
   availability_zone_id = "{{ item.availability_zone_id }}"
 {% endif %}
 
-{% if item.availability_zone_id is defined %}
-  availability_zone_id = "{{ item.availability_zone_id }}"
-{% endif %}
-
 {% if item.ipv6_cidr_block  is defined %}
   ipv6_cidr_block = "{{ item.ipv6_cidr_block }}"
 {% endif %}

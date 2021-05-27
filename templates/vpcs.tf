@@ -7,15 +7,15 @@ resource "aws_vpc" "{{ item.name }}" {
 {% endif %}
 
 {% if item.enable_dns_support is defined %}
-  instance_tenancy = "{{ item.enable_dns_support }}"
+  enable_dns_support  = "{{ item.enable_dns_support }}"
 {% endif %}
 
 {% if item.enable_dns_hostnames is defined %}
-  instance_tenancy = "{{ item.enable_dns_hostnames }}"
+  enable_dns_hostnames  = "{{ item.enable_dns_hostnames }}"
 {% endif %}
 
 {% if item.assign_generated_ipv6_cidr_block is defined %}
-  instance_tenancy = "{{ item.assign_generated_ipv6_cidr_block }}"
+  assign_generated_ipv6_cidr_block = "{{ item.assign_generated_ipv6_cidr_block }}"
 {% endif %}
 
 {% if item.tags is defined %}
